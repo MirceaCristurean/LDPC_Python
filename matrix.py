@@ -91,12 +91,25 @@ def decode(matrix, syndrome, n, k):
     y = np.zeros(n, dtype="bool")
     length, = decode_syndrome.nonzero()
     print("length", length)
-    while len(length) != 0:
+    stop = True
+    while len(length) != 0 and stop:
         score = calculate_score(matrix, decode_syndrome, n)
         print("score = ", score)
         m = max(score)
         list_max, = (np.array(score) >= m).nonzero()
-        print("list max = ", list_max)
+        # print("list max = ", list_max)
+        for i in list_max:
+            # print("am intrat in lista_max")
+            # print(f"sindrom = {decode_syndrome}")
+            # print(f"coloana = {np.transpose(matrix)[:][i]}")
+            if np.array_equal(decode_syndrome, np.transpose(matrix)[:][i]):
+                print("Yes. Sindrom gasit")
+                decode_syndrome = np.logical_xor(decode_syndrome, syndrome)
+                length, = decode_syndrome.nonzero()
+                stop = False
+                break
+        if stop is False:
+            return True
         v = np.zeros(k, dtype="bool")
         x = np.zeros(n, dtype="bool")
         for column in list_max:
@@ -118,15 +131,15 @@ def decode(matrix, syndrome, n, k):
 
 if __name__ == '__main__':
     validity = []
-    n = 2000  # columns
-    k = 1000  # n-k rows
+    n = 5000  # columns
+    k = 2000  # n-k rows
     w = 5  # number of 1 value on a row
     # errorWeight = 3  # complexity of error vector
     generated_matrix = generate_matrix_h(n - k, n, w)  # generating random matrix
     zero_columns_matrix, new_n, new_k = remove_zero_columns(generated_matrix)
     striped_matrix = remove_duplicates_rows(zero_columns_matrix, new_n,new_k)  # cleaning matrix => generator matrix H
     start_error_weight = 2
-    stop_error_weight = 4
+    stop_error_weight = 3
     number_of_retries = 100
     for errorWeight in range(start_error_weight, stop_error_weight):
         true_count = 0
